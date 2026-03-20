@@ -10,15 +10,12 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Compilar si no existe la carpeta dist
-if not exist "dist\" (
-    echo Compilando Code Hub por primera vez, espera un momento...
-    call npm run build
-    if errorlevel 1 (
-        echo [ERROR] Fallo la compilacion.
-        pause
-        exit /b 1
-    )
+:: Verificar node_modules
+if not exist "node_modules\" (
+    echo [ERROR] Falta la carpeta node_modules.
+    echo         Copia la carpeta completa desde el equipo del owner o contacta al responsable del hub.
+    pause
+    exit /b 1
 )
 
 :: Obtener IP de red local
