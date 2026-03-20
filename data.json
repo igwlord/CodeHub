@@ -1,0 +1,1023 @@
+{
+  "snippets": [
+    {
+      "id": "demo-001",
+      "title": "Listar usuarios de Active Directory",
+      "description": "Lista todos los usuarios habilitados del AD, exportando su nombre, email y OU. Útil para auditorías mensuales.",
+      "code": "Get-ADUser -Filter {Enabled -eq $true} -Properties DisplayName, EmailAddress, DistinguishedName | Select-Object DisplayName, EmailAddress, DistinguishedName | Export-Csv -Path C:\\Temp\\AD_Users.csv -NoTypeInformation\n\nWrite-Host '✅ Exportación completada en C:\\Temp\\AD_Users.csv'",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:00:00.000Z",
+      "tags": [
+        "AD",
+        "usuarios",
+        "auditoría",
+        "export"
+      ],
+      "favorite": true,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-002",
+      "title": "Buscar usuario por nombre en AD",
+      "description": "Busca usuarios en Active Directory cuyo nombre contenga la cadena indicada.",
+      "code": "$nombre = 'Juan'\nGet-ADUser -Filter {Name -like \"*$nombre*\"} -Properties DisplayName, EmailAddress, Enabled | Select-Object Name, DisplayName, EmailAddress, Enabled | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:05:00.000Z",
+      "tags": [
+        "AD",
+        "buscar",
+        "usuario"
+      ],
+      "favorite": true,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-003",
+      "title": "Reset contraseña AD",
+      "description": "Fuerza el cambio de contraseña de un usuario de Active Directory.",
+      "code": "$usuario = 'jperez'\n$nuevaPass = ConvertTo-SecureString 'TempPass@2026!' -AsPlainText -Force\nSet-ADAccountPassword -Identity $usuario -NewPassword $nuevaPass -Reset\nSet-ADUser -Identity $usuario -ChangePasswordAtLogon $true\nWrite-Host \"✅ Contraseña reseteada para $usuario\"",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:10:00.000Z",
+      "tags": [
+        "AD",
+        "contraseña",
+        "reset"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-004",
+      "title": "Habilitar / Deshabilitar cuenta AD",
+      "description": "Habilita o deshabilita una cuenta de usuario en Active Directory.",
+      "code": "# Habilitar\nEnable-ADAccount -Identity 'jperez'\nWrite-Host '✅ Cuenta habilitada'\n\n# Deshabilitar\n# Disable-ADAccount -Identity 'jperez'\n# Write-Host '✅ Cuenta deshabilitada'",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:15:00.000Z",
+      "tags": [
+        "AD",
+        "cuenta",
+        "habilitar",
+        "deshabilitar"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-005",
+      "title": "Ver grupos de un usuario AD",
+      "description": "Lista todos los grupos de seguridad y distribución a los que pertenece un usuario.",
+      "code": "$usuario = 'jperez'\nGet-ADPrincipalGroupMembership -Identity $usuario | Select-Object Name, GroupCategory, GroupScope | Sort-Object Name | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:20:00.000Z",
+      "tags": [
+        "AD",
+        "grupos",
+        "membresía"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-006",
+      "title": "Agregar usuario a grupo AD",
+      "description": "Agrega un usuario a un grupo de seguridad en Active Directory.",
+      "code": "$usuario = 'jperez'\n$grupo = 'GRP-VPN-Acceso'\nAdd-ADGroupMember -Identity $grupo -Members $usuario\nWrite-Host \"✅ $usuario agregado a $grupo\"",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:25:00.000Z",
+      "tags": [
+        "AD",
+        "grupo",
+        "agregar"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-007",
+      "title": "Listar computadoras del dominio",
+      "description": "Obtiene todas las computadoras activas del dominio con su SO y última fecha de logon.",
+      "code": "Get-ADComputer -Filter {Enabled -eq $true} -Properties OperatingSystem, LastLogonDate | Select-Object Name, OperatingSystem, LastLogonDate | Sort-Object LastLogonDate -Descending | Export-Csv C:\\Temp\\PCs_Dominio.csv -NoTypeInformation\nWrite-Host '✅ Exportado a C:\\Temp\\PCs_Dominio.csv'",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:30:00.000Z",
+      "tags": [
+        "AD",
+        "computadoras",
+        "inventario"
+      ],
+      "favorite": true,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-008",
+      "title": "Cuentas bloqueadas en AD",
+      "description": "Busca todas las cuentas que están bloqueadas en Active Directory.",
+      "code": "Search-ADAccount -LockedOut | Select-Object Name, SamAccountName, LockedOut, LastLogonDate | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:35:00.000Z",
+      "tags": [
+        "AD",
+        "bloqueado",
+        "lockout"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-009",
+      "title": "Desbloquear cuenta AD",
+      "description": "Desbloquea una cuenta de usuario bloqueada en Active Directory.",
+      "code": "$usuario = 'jperez'\nUnlock-ADAccount -Identity $usuario\nWrite-Host \"✅ Cuenta $usuario desbloqueada\"",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:40:00.000Z",
+      "tags": [
+        "AD",
+        "unlock",
+        "desbloquear"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-ad-010",
+      "title": "Último login de usuario AD",
+      "description": "Muestra la última fecha y hora en que un usuario inició sesión en el dominio.",
+      "code": "$usuario = 'jperez'\nGet-ADUser -Identity $usuario -Properties LastLogonDate | Select-Object Name, SamAccountName, LastLogonDate | Format-List",
+      "language": "powershell",
+      "category": "Active Directory",
+      "author": "Admin",
+      "createdAt": "2026-03-15T10:45:00.000Z",
+      "tags": [
+        "AD",
+        "login",
+        "último acceso"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-net-001",
+      "title": "Diagnóstico de red rápido",
+      "description": "Verifica la conectividad de red, DNS y gateway. Ideal para primer diagnóstico ante reportes de conectividad.",
+      "code": "# Diagnóstico de Red\n$gateway = (Get-NetRoute -DestinationPrefix '0.0.0.0/0').NextHop\n$dns = (Get-DnsClientServerAddress -AddressFamily IPv4).ServerAddresses\n\nWrite-Host '🌐 Gateway:' $gateway\nWrite-Host '🔍 DNS Servers:' ($dns -join ', ')\n\nTest-Connection 8.8.8.8 -Count 3\nTest-Connection $gateway -Count 3",
+      "language": "powershell",
+      "category": "Networking",
+      "author": "Guido",
+      "createdAt": "2026-03-17T14:30:00.000Z",
+      "tags": [
+        "red",
+        "DNS",
+        "ping",
+        "diagnóstico"
+      ],
+      "favorite": true,
+      "locked": true
+    },
+    {
+      "id": "demo-net-002",
+      "title": "Flush DNS",
+      "description": "Limpia la caché DNS del cliente.",
+      "code": "ipconfig /flushdns",
+      "language": "cmd",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T14:35:00.000Z",
+      "tags": [
+        "DNS",
+        "flush",
+        "caché"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-net-003",
+      "title": "Ver adaptadores de red e IPs",
+      "description": "Lista todos los adaptadores de red con sus IPs configuradas.",
+      "code": "Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notlike 'Loopback*'} | Select-Object InterfaceAlias, IPAddress, PrefixLength | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T14:40:00.000Z",
+      "tags": [
+        "red",
+        "IP",
+        "adaptadores"
+      ],
+      "favorite": true,
+      "locked": true
+    },
+    {
+      "id": "demo-net-004",
+      "title": "Ping múltiples hosts",
+      "description": "Realiza ping a una lista de hosts y muestra los resultados.",
+      "code": "$hosts = @('8.8.8.8', '1.1.1.1', 'google.com', 'dc01.empresa.local')\nforeach ($h in $hosts) {\n  $r = Test-Connection $h -Count 2 -Quiet\n  Write-Host \"$h : $(if ($r) {'✅ OK'} else {'❌ FAIL'})\"\n}",
+      "language": "powershell",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T14:45:00.000Z",
+      "tags": [
+        "ping",
+        "múltiple",
+        "hosts"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-net-005",
+      "title": "Ver conexiones activas (netstat)",
+      "description": "Muestra todas las conexiones TCP activas con sus PIDs.",
+      "code": "netstat -ano | findstr ESTABLISHED",
+      "language": "cmd",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T14:50:00.000Z",
+      "tags": [
+        "netstat",
+        "conexiones",
+        "puertos"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-net-006",
+      "title": "Renovar IP (DHCP)",
+      "description": "Libera y renueva la dirección IP del adaptador DHCP.",
+      "code": "ipconfig /release\nipconfig /renew\nWrite-Host '✅ IP renovada'",
+      "language": "cmd",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T14:55:00.000Z",
+      "tags": [
+        "DHCP",
+        "IP",
+        "renovar"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-net-007",
+      "title": "Mapear unidad de red",
+      "description": "Mapea una unidad de red a una letra de unidad asignada.",
+      "code": "net use Z: \\\\servidor\\carpeta-compartida /persistent:yes\nWrite-Host '✅ Unidad Z: mapeada'",
+      "language": "cmd",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T15:00:00.000Z",
+      "tags": [
+        "red",
+        "mapeado",
+        "unidad"
+      ],
+      "favorite": true,
+      "locked": true
+    },
+    {
+      "id": "demo-net-008",
+      "title": "Escanear puertos abiertos",
+      "description": "Verifica si ciertos puertos están abiertos en un host remoto.",
+      "code": "$host = '192.168.1.1'\n$puertos = @(80, 443, 445, 3389, 22)\nforeach ($p in $puertos) {\n  $r = Test-NetConnection $host -Port $p -WarningAction SilentlyContinue\n  Write-Host \"Puerto $p : $(if ($r.TcpTestSucceeded) {'✅ ABIERTO'} else {'❌ CERRADO'})\"\n}",
+      "language": "powershell",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T15:05:00.000Z",
+      "tags": [
+        "puertos",
+        "scan",
+        "TCP"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-net-009",
+      "title": "Ver tabla ARP",
+      "description": "Muestra la tabla ARP del sistema con IPs y MACs vecinas.",
+      "code": "Get-NetNeighbor -AddressFamily IPv4 | Where-Object {$_.State -eq 'Reachable'} | Select-Object IPAddress, LinkLayerAddress, InterfaceAlias | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T15:10:00.000Z",
+      "tags": [
+        "ARP",
+        "MAC",
+        "vecinos"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-net-010",
+      "title": "Configurar DNS manualmente",
+      "description": "Establece los servidores DNS de un adaptador de red.",
+      "code": "$adaptador = 'Ethernet'\nSet-DnsClientServerAddress -InterfaceAlias $adaptador -ServerAddresses ('8.8.8.8','8.8.4.4')\nWrite-Host \"✅ DNS configurados en $adaptador\"",
+      "language": "powershell",
+      "category": "Networking",
+      "author": "Admin",
+      "createdAt": "2026-03-17T15:15:00.000Z",
+      "tags": [
+        "DNS",
+        "configurar",
+        "adaptador"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-o365-001",
+      "title": "Reset de contraseña Office 365",
+      "description": "Fuerza el reset de contraseña de un usuario de O365 usando PowerShell con módulo MSOnline.",
+      "code": "# Requiere: Install-Module MSOnline\nConnect-MsolService\n\n$user = 'USER@empresa.com'\n$newPass = 'TempPass@2026'\n\nSet-MsolUserPassword -UserPrincipalName $user -NewPassword $newPass -ForceChangePassword $true\nWrite-Host \"✅ Contraseña reseteada para $user\"",
+      "language": "powershell",
+      "category": "Office 365",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:00:00.000Z",
+      "tags": [
+        "O365",
+        "contraseña",
+        "reset",
+        "MSOnline"
+      ],
+      "favorite": true,
+      "locked": true
+    },
+    {
+      "id": "demo-o365-002",
+      "title": "Conectar a Exchange Online",
+      "description": "Establece una sesión de PowerShell con Exchange Online.",
+      "code": "# Requiere: Install-Module ExchangeOnlineManagement\nConnect-ExchangeOnline -UserPrincipalName admin@empresa.com\nWrite-Host '✅ Conectado a Exchange Online'",
+      "language": "powershell",
+      "category": "Office 365",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:05:00.000Z",
+      "tags": [
+        "O365",
+        "Exchange",
+        "conectar"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-o365-003",
+      "title": "Listar licencias de usuario O365",
+      "description": "Muestra las licencias asignadas a todos los usuarios de la organización.",
+      "code": "Connect-MsolService\nGet-MsolUser -All | Where-Object {$_.IsLicensed -eq $true} | Select-Object DisplayName, UserPrincipalName, Licenses | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Office 365",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:10:00.000Z",
+      "tags": [
+        "O365",
+        "licencias",
+        "usuarios"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-o365-004",
+      "title": "Ver estado MFA de usuario",
+      "description": "Verifica si un usuario tiene MFA habilitado en Office 365.",
+      "code": "Connect-MsolService\n$user = 'usuario@empresa.com'\n$u = Get-MsolUser -UserPrincipalName $user\n$mfaState = $u.StrongAuthenticationRequirements\nif ($mfaState) {\n  Write-Host \"✅ MFA habilitado: $($mfaState.State)\"\n} else {\n  Write-Host '⚠️ MFA no configurado'\n}",
+      "language": "powershell",
+      "category": "Office 365",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:15:00.000Z",
+      "tags": [
+        "O365",
+        "MFA",
+        "seguridad"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-o365-005",
+      "title": "Ver tamaño de buzón",
+      "description": "Obtiene el tamaño del buzón de un usuario en Exchange Online.",
+      "code": "Connect-ExchangeOnline -UserPrincipalName admin@empresa.com\n$usuario = 'usuario@empresa.com'\nGet-MailboxStatistics -Identity $usuario | Select-Object DisplayName, TotalItemSize, ItemCount | Format-List",
+      "language": "powershell",
+      "category": "Office 365",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:20:00.000Z",
+      "tags": [
+        "O365",
+        "buzón",
+        "tamaño",
+        "Exchange"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-o365-006",
+      "title": "Bloquear acceso a cuenta O365",
+      "description": "Revoca todos los tokens de sesión activos de un usuario de Azure AD.",
+      "code": "# Requiere módulo AzureAD\nConnect-AzureAD\n$user = 'usuario@empresa.com'\nRevoke-AzureADUserAllRefreshToken -ObjectId (Get-AzureADUser -ObjectId $user).ObjectId\nSet-AzureADUser -ObjectId (Get-AzureADUser -ObjectId $user).ObjectId -AccountEnabled $false\nWrite-Host \"✅ Acceso bloqueado para $user\"",
+      "language": "powershell",
+      "category": "Office 365",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:25:00.000Z",
+      "tags": [
+        "O365",
+        "bloquear",
+        "seguridad",
+        "AzureAD"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-o365-007",
+      "title": "Exportar reporte de uso O365",
+      "description": "Genera un reporte CSV con estadísticas de uso de buzones.",
+      "code": "Connect-ExchangeOnline -UserPrincipalName admin@empresa.com\nGet-MailboxStatistics | Select-Object DisplayName, TotalItemSize, ItemCount, LastLogonTime | Sort-Object TotalItemSize -Descending | Export-Csv C:\\Temp\\Reporte_Buzones.csv -NoTypeInformation\nWrite-Host '✅ Reporte exportado'",
+      "language": "powershell",
+      "category": "Office 365",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:30:00.000Z",
+      "tags": [
+        "O365",
+        "reporte",
+        "buzones",
+        "export"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-001",
+      "title": "Info completa del sistema",
+      "description": "Obtiene información detallada del hardware y sistema operativo.",
+      "code": "Get-ComputerInfo | Select-Object CsName, WindowsProductName, OsVersion, CsManufacturer, CsModel, CsProcessors, CsTotalPhysicalMemory | Format-List",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:00:00.000Z",
+      "tags": [
+        "hardware",
+        "sistema",
+        "info"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-002",
+      "title": "Ver RAM instalada",
+      "description": "Muestra los módulos de RAM instalados con su capacidad y velocidad.",
+      "code": "Get-CimInstance Win32_PhysicalMemory | Select-Object Manufacturer, Capacity, Speed, MemoryType | ForEach-Object {\n  [PSCustomObject]@{\n    Fabricante = $_.Manufacturer\n    CapacidadGB = [math]::Round($_.Capacity/1GB, 2)\n    VelocidadMHz = $_.Speed\n  }\n} | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:05:00.000Z",
+      "tags": [
+        "RAM",
+        "memoria",
+        "hardware"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-003",
+      "title": "Estado de discos",
+      "description": "Muestra el estado de salud de los discos físicos del sistema.",
+      "code": "Get-PhysicalDisk | Select-Object FriendlyName, MediaType, Size, HealthStatus, OperationalStatus | ForEach-Object {\n  [PSCustomObject]@{\n    Disco = $_.FriendlyName\n    Tipo = $_.MediaType\n    TamañoGB = [math]::Round($_.Size/1GB, 1)\n    Salud = $_.HealthStatus\n  }\n} | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:10:00.000Z",
+      "tags": [
+        "disco",
+        "hardware",
+        "salud"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-004",
+      "title": "Listar dispositivos USB",
+      "description": "Muestra todos los dispositivos USB conectados al sistema.",
+      "code": "Get-PnpDevice -Class USB | Where-Object {$_.Status -eq 'OK'} | Select-Object Name, DeviceID, Status | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:15:00.000Z",
+      "tags": [
+        "USB",
+        "dispositivos",
+        "hardware"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-005",
+      "title": "Número de serie y modelo",
+      "description": "Obtiene el número de serie del BIOS y el modelo del equipo.",
+      "code": "$bios = Get-WmiObject Win32_BIOS\n$comp = Get-WmiObject Win32_ComputerSystem\nWrite-Host \"Modelo:          $($comp.Manufacturer) $($comp.Model)\"\nWrite-Host \"Nro de Serie:    $($bios.SerialNumber)\"\nWrite-Host \"Versión BIOS:    $($bios.SMBIOSBIOSVersion)\"",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:20:00.000Z",
+      "tags": [
+        "serie",
+        "modelo",
+        "BIOS",
+        "inventario"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-006",
+      "title": "Inventario hardware a CSV",
+      "description": "Genera un inventario completo del hardware del equipo en formato CSV.",
+      "code": "Get-ComputerInfo | Select-Object CsName, CsManufacturer, CsModel, WindowsProductName, OsVersion, CsTotalPhysicalMemory, OsArchitecture | Export-Csv C:\\Temp\\Inventario_HW.csv -NoTypeInformation\nWrite-Host '✅ Inventario exportado a C:\\Temp\\Inventario_HW.csv'",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:25:00.000Z",
+      "tags": [
+        "inventario",
+        "CSV",
+        "hardware"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-007",
+      "title": "Reiniciar servicio de impresora (Spooler)",
+      "description": "Reinicia el servicio de cola de impresión para resolver problemas de impresora.",
+      "code": "Stop-Service -Name Spooler -Force\nStart-Service -Name Spooler\nWrite-Host '✅ Servicio Spooler reiniciado'\nGet-Service -Name Spooler | Select-Object Name, Status",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:30:00.000Z",
+      "tags": [
+        "impresora",
+        "Spooler",
+        "servicio"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-hw-008",
+      "title": "Drivers instalados",
+      "description": "Lista todos los drivers instalados en el sistema.",
+      "code": "Get-WindowsDriver -Online | Select-Object Driver, ProviderName, Date, Version | Sort-Object Date -Descending | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Hardware",
+      "author": "Admin",
+      "createdAt": "2026-03-18T09:35:00.000Z",
+      "tags": [
+        "drivers",
+        "hardware",
+        "Windows"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-001",
+      "title": "Ver versión de Windows",
+      "description": "Abre el cuadro de diálogo con la versión de Windows instalada.",
+      "code": "winver",
+      "language": "run",
+      "category": "Windows",
+      "author": "Guido",
+      "createdAt": "2026-03-19T19:22:10.222Z",
+      "tags": [
+        "Windows",
+        "versión"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-002",
+      "title": "Información del sistema (msinfo32)",
+      "description": "Abre el informe detallado del sistema con info de hardware y software.",
+      "code": "msinfo32",
+      "language": "run",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:40:00.000Z",
+      "tags": [
+        "Windows",
+        "sistema",
+        "info"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-003",
+      "title": "Servicios de Windows",
+      "description": "Abre el gestor de servicios de Windows.",
+      "code": "services.msc",
+      "language": "run",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:45:00.000Z",
+      "tags": [
+        "Windows",
+        "servicios",
+        "MSC"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-004",
+      "title": "Editor de registro",
+      "description": "Abre el editor del registro de Windows.",
+      "code": "regedit",
+      "language": "run",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:50:00.000Z",
+      "tags": [
+        "Windows",
+        "registro",
+        "regedit"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-005",
+      "title": "Editor de políticas de grupo",
+      "description": "Abre el editor de directivas de grupo local.",
+      "code": "gpedit.msc",
+      "language": "run",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T09:55:00.000Z",
+      "tags": [
+        "Windows",
+        "GPO",
+        "gpedit"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-006",
+      "title": "Historial de actualizaciones Windows",
+      "description": "Lista todos los hotfixes y actualizaciones instaladas en el sistema.",
+      "code": "Get-HotFix | Select-Object HotFixID, Description, InstalledOn | Sort-Object InstalledOn -Descending | Format-Table -AutoSize",
+      "language": "powershell",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T10:00:00.000Z",
+      "tags": [
+        "Windows",
+        "actualizaciones",
+        "hotfix"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-007",
+      "title": "Ver usuarios locales conectados",
+      "description": "Muestra los usuarios con sesión activa en el equipo.",
+      "code": "query user",
+      "language": "cmd",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T10:05:00.000Z",
+      "tags": [
+        "Windows",
+        "usuarios",
+        "sesión"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-008",
+      "title": "SFC Scan",
+      "description": "Ejecuta el comprobador de archivos de sistema para reparar archivos corruptos.",
+      "code": "sfc /scannow",
+      "language": "cmd",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T10:10:00.000Z",
+      "tags": [
+        "Windows",
+        "SFC",
+        "reparar"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-009",
+      "title": "DISM Health Check",
+      "description": "Comprueba la salud de la imagen del sistema operativo.",
+      "code": "DISM /Online /Cleanup-Image /CheckHealth",
+      "language": "cmd",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T10:15:00.000Z",
+      "tags": [
+        "Windows",
+        "DISM",
+        "salud"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-win-010",
+      "title": "Limpiar archivos temporales",
+      "description": "Elimina todos los archivos de la carpeta Temp del usuario actual.",
+      "code": "Remove-Item -Path $env:TEMP\\* -Recurse -Force -ErrorAction SilentlyContinue\nWrite-Host '✅ Archivos temporales eliminados'",
+      "language": "powershell",
+      "category": "Windows",
+      "author": "Admin",
+      "createdAt": "2026-03-19T10:20:00.000Z",
+      "tags": [
+        "Windows",
+        "limpieza",
+        "temp"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-scr-002",
+      "title": "Template Python básico",
+      "description": "Estructura base para scripts Python con argparse y logging.",
+      "code": "#!/usr/bin/env python3\n\"\"\"Descripción del script\"\"\"\nimport argparse\nimport logging\nimport sys\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s [%(levelname)s] %(message)s',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger(__name__)\n\ndef main(args):\n    logger.info(f'Iniciando con param={args.param}')\n    # Tu lógica aquí\n    logger.info('Script completado')\n\nif __name__ == '__main__':\n    parser = argparse.ArgumentParser(description='Descripción')\n    parser.add_argument('--param', required=True, help='Parámetro requerido')\n    args = parser.parse_args()\n    main(args)",
+      "language": "python",
+      "category": "Scripts",
+      "author": "Admin",
+      "createdAt": "2026-03-16T09:05:00.000Z",
+      "tags": [
+        "template",
+        "Python",
+        "argparse"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-scr-003",
+      "title": "Enviar email desde PowerShell",
+      "description": "Envía un correo electrónico usando SMTP desde PowerShell.",
+      "code": "$params = @{\n  From       = 'soporte@empresa.com'\n  To         = 'destinatario@empresa.com'\n  Subject    = 'Notificación automática'\n  Body       = 'Cuerpo del mensaje'\n  SmtpServer = 'smtp.empresa.com'\n  Port       = 587\n  UseSsl     = $true\n  Credential = Get-Credential\n}\nSend-MailMessage @params\nWrite-Host '✅ Email enviado'",
+      "language": "powershell",
+      "category": "Scripts",
+      "author": "Admin",
+      "createdAt": "2026-03-16T09:10:00.000Z",
+      "tags": [
+        "email",
+        "SMTP",
+        "PowerShell"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-scr-004",
+      "title": "Leer CSV y procesar en PowerShell",
+      "description": "Importa un archivo CSV y procesa cada fila con lógica personalizada.",
+      "code": "$archivo = 'C:\\Temp\\usuarios.csv'\n$data = Import-Csv -Path $archivo\n$contador = 0\n\nforeach ($row in $data) {\n  # Procesar cada fila\n  Write-Host \"Procesando: $($row.Nombre) - $($row.Email)\"\n  $contador++\n}\n\nWrite-Host \"✅ Procesadas $contador filas\"",
+      "language": "powershell",
+      "category": "Scripts",
+      "author": "Admin",
+      "createdAt": "2026-03-16T09:15:00.000Z",
+      "tags": [
+        "CSV",
+        "procesar",
+        "PowerShell"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-scr-005",
+      "title": "Crear reporte HTML",
+      "description": "Genera un reporte HTML con información del sistema.",
+      "code": "$html = Get-Process | Select-Object Name, CPU, WorkingSet | Sort-Object CPU -Descending | ConvertTo-Html -Title 'Procesos del Sistema' -PreContent '<h1>Reporte de Procesos</h1>' -PostContent \"<p>Generado: $(Get-Date)</p>\"\n\n$html | Out-File C:\\Temp\\reporte.html\nStart-Process C:\\Temp\\reporte.html\nWrite-Host '✅ Reporte HTML generado'",
+      "language": "powershell",
+      "category": "Scripts",
+      "author": "Admin",
+      "createdAt": "2026-03-16T09:20:00.000Z",
+      "tags": [
+        "HTML",
+        "reporte",
+        "PowerShell"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-scr-006",
+      "title": "Script de backup con compresión",
+      "description": "Comprime una carpeta en un archivo ZIP con timestamp.",
+      "code": "$origen = 'C:\\Datos\\Importante'\n$destino = \"C:\\Backups\\backup_$(Get-Date -Format 'yyyyMMdd_HHmm').zip\"\n\nif (-not (Test-Path 'C:\\Backups')) { New-Item -ItemType Directory -Path 'C:\\Backups' }\n\nCompress-Archive -Path $origen -DestinationPath $destino -Force\n$size = [math]::Round((Get-Item $destino).Length / 1MB, 2)\nWrite-Host \"✅ Backup creado: $destino ($size MB)\"",
+      "language": "powershell",
+      "category": "Scripts",
+      "author": "Admin",
+      "createdAt": "2026-03-16T09:25:00.000Z",
+      "tags": [
+        "backup",
+        "compresión",
+        "ZIP"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-scr-007",
+      "title": "Monitorear proceso",
+      "description": "Monitorea un proceso y alerta si el uso de CPU supera un umbral.",
+      "code": "$proceso = 'chrome'\n$umbralCPU = 50\n$intervalo = 5  # segundos\n\nWrite-Host \"Monitoreando $proceso (umbral CPU: $umbralCPU%)...\"\nwhile ($true) {\n  $proc = Get-Process $proceso -ErrorAction SilentlyContinue\n  if ($proc) {\n    $cpu = [math]::Round(($proc | Measure-Object CPU -Sum).Sum, 2)\n    if ($cpu -gt $umbralCPU) {\n      Write-Host \"⚠️ ALERTA: $proceso usa $cpu% CPU\" -ForegroundColor Red\n    } else {\n      Write-Host \"$(Get-Date -Format 'HH:mm:ss') | $proceso CPU: $cpu%\"\n    }\n  } else {\n    Write-Host \"❌ Proceso $proceso no encontrado\"\n  }\n  Start-Sleep $intervalo\n}",
+      "language": "powershell",
+      "category": "Scripts",
+      "author": "Admin",
+      "createdAt": "2026-03-16T09:30:00.000Z",
+      "tags": [
+        "monitoreo",
+        "proceso",
+        "CPU"
+      ],
+      "favorite": false,
+      "locked": true
+    },
+    {
+      "id": "demo-scr-008",
+      "title": "Programar tarea en Task Scheduler",
+      "description": "Crea una tarea programada para ejecutar un script automáticamente.",
+      "code": "$accion = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-File C:\\Scripts\\MiScript.ps1'\n$trigger = New-ScheduledTaskTrigger -Daily -At '07:00AM'\n$config = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable\n\nRegister-ScheduledTask -TaskName 'MiTarea_Automatica' -Action $accion -Trigger $trigger -Settings $config -RunLevel Highest -Force\nWrite-Host '✅ Tarea programada creada'",
+      "language": "powershell",
+      "category": "Scripts",
+      "author": "Admin",
+      "createdAt": "2026-03-16T09:35:00.000Z",
+      "tags": [
+        "scheduler",
+        "tarea",
+        "automatización"
+      ],
+      "favorite": false,
+      "locked": true
+    }
+  ],
+  "tools": [
+    {
+      "id": "cmd-admin",
+      "name": "CMD Admin",
+      "description": "Terminal de comandos con privilegios elevados",
+      "command": "Start-Process cmd.exe",
+      "icon": "Command",
+      "color": "#f6ad55",
+      "locked": true
+    },
+    {
+      "id": "taskmgr",
+      "name": "Task Manager",
+      "description": "Monitor de recursos y procesos del sistema",
+      "command": "Start-Process taskmgr.exe",
+      "icon": "Cpu",
+      "color": "#00b894",
+      "locked": true
+    },
+    {
+      "id": "ps-admin",
+      "name": "PowerShell Admin",
+      "description": "Consola PowerShell para administración",
+      "command": "pwsh.exe -NoExit -ExecutionPolicy Bypass",
+      "icon": "Terminal",
+      "color": "#5b9cf6",
+      "locked": true
+    },
+    {
+      "id": "sccm",
+      "name": "SCCM Console",
+      "description": "Gestión de configuración de endpoints",
+      "command": "Start-Process \"C:\\Program Files (x86)\\ConfigMgrConsole\\bin\\Microsoft.ConfigurationManagement.exe\"",
+      "icon": "Server",
+      "color": "#a855f7",
+      "locked": true
+    },
+    {
+      "id": "remote-control",
+      "name": "Control Remoto",
+      "description": "Herramienta de asistencia y soporte remoto",
+      "command": "Start-Process \"C:\\Program Files (x86)\\ConfigMgrConsole\\bin\\i386\\CmRcViewer.exe\"",
+      "icon": "Monitor",
+      "color": "#e17055",
+      "locked": true
+    },
+    {
+      "id": "gpedit",
+      "name": "Editor de Políticas",
+      "description": "Gestión de GPO y directivas locales",
+      "command": "Start-Process gpedit.msc",
+      "icon": "Shield",
+      "color": "#fdcb6e",
+      "locked": true
+    },
+    {
+      "id": "compmgmt",
+      "name": "Administrador de Equipos",
+      "description": "Gestión local de discos, usuarios y servicios",
+      "command": "Start-Process compmgmt.msc",
+      "icon": "Monitor",
+      "color": "#6c5ce7",
+      "locked": true
+    },
+    {
+      "id": "perfmon",
+      "name": "Monitor de Rendimiento",
+      "description": "Monitoreo detallado de rendimiento del sistema",
+      "command": "Start-Process perfmon",
+      "icon": "Cpu",
+      "color": "#00cec9",
+      "locked": true
+    },
+    {
+      "id": "diskmgmt",
+      "name": "Administrador de Discos",
+      "description": "Gestión de particiones y volúmenes",
+      "command": "Start-Process diskmgmt.msc",
+      "icon": "Server",
+      "color": "#fd79a8",
+      "locked": true
+    },
+    {
+      "id": "wf",
+      "name": "Firewall Avanzado",
+      "description": "Reglas de firewall de Windows Defender",
+      "command": "Start-Process wf.msc",
+      "icon": "Shield",
+      "color": "#e17055",
+      "locked": true
+    },
+    {
+      "id": "eventvwr",
+      "name": "Visor de Eventos",
+      "description": "Logs del sistema, aplicaciones y seguridad",
+      "command": "Start-Process eventvwr.msc",
+      "icon": "Wrench",
+      "color": "#fdcb6e",
+      "locked": true
+    },
+    {
+      "id": "mstsc",
+      "name": "Escritorio Remoto",
+      "description": "Conexión RDP a equipos remotos",
+      "command": "Start-Process mstsc",
+      "icon": "Network",
+      "color": "#0984e3",
+      "locked": true
+    },
+    {
+      "id": "msconfig",
+      "name": "Configuración del Sistema",
+      "description": "Inicio, servicios y herramientas de Windows",
+      "command": "Start-Process msconfig",
+      "icon": "Settings",
+      "color": "#636eff",
+      "locked": true
+    },
+    {
+      "id": "printmgmt",
+      "name": "Administrador de Impresoras",
+      "description": "Gestión de impresoras y colas de impresión",
+      "command": "Start-Process printmanagement.msc",
+      "icon": "Wrench",
+      "color": "#00b894",
+      "locked": true
+    }
+  ]
+}

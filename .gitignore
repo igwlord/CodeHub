@@ -1,6 +1,6 @@
 # Sensitive data files — never commit
-data.json
-users.json
+# data.json         ← INCLUIDO EN REPO para despliegue inicial
+users.json         ← Cada instalación genera su propio users.json
 *.tmp
 
 # Claude Code local settings
