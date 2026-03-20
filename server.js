@@ -33,6 +33,57 @@ function verifyPin(pin, stored) {
   } catch { return false; }
 }
 
+// ── Audit log ────────────────────────────────────────────────────────────────
+const AUDIT_FILE = path.join(__dirname, 'hub-audit.log');
+function auditLog(attuid, action, detail = '') {
+  const line = `[${new Date().toISOString()}] [${attuid}] ${action}${detail ? ' | ' + detail : ''}\n`;
+  try { fs.appendFileSync(AUDIT_FILE, line, 'utf8'); } catch { /* no-op */ }
+  console.log('[AUDIT]', line.trim());
+}
+
+// ── Allowed settings fields (prevent prototype pollution) ────────────────────
+const ALLOWED_SETTINGS = new Set([
+  'theme', 'navMode', 'clocks', 'pinnedItems',
+  'adminUser', 'adminDomain', 'servers', 'recentConns'
+]);
+function sanitizeSettings(incoming) {
+  const clean = {};
+  for (const key of ALLOWED_SETTINGS) {
+    if (key in incoming) clean[key] = incoming[key];
+  }
+  return clean;
+}
+
+// ── Allowed snippet fields (prevent XSS / prototype pollution) ───────────────
+function sanitizeSnippet(s) {
+  return {
+    id:          typeof s.id === 'string'          ? s.id          : randomUUID(),
+    title:       typeof s.title === 'string'       ? s.title       : '',
+    description: typeof s.description === 'string' ? s.description : '',
+    code:        typeof s.code === 'string'         ? s.code        : '',
+    language:    typeof s.language === 'string'     ? s.language    : 'plaintext',
+    category:    typeof s.category === 'string'     ? s.category    : '',
+    tags:        Array.isArray(s.tags)              ? s.tags.map(String) : [],
+    author:      typeof s.author === 'string'       ? s.author      : '',
+    createdAt:   typeof s.createdAt === 'string'    ? s.createdAt   : new Date().toISOString(),
+    favorite:    typeof s.favorite === 'boolean'    ? s.favorite    : false,
+    runMode:     typeof s.runMode === 'string'      ? s.runMode     : '',
+    pinned:      typeof s.pinned === 'boolean'      ? s.pinned      : false,
+  };
+}
+function sanitizeTool(t) {
+  return {
+    id:          typeof t.id === 'string'          ? t.id          : randomUUID(),
+    name:        typeof t.name === 'string'         ? t.name        : '',
+    description: typeof t.description === 'string' ? t.description : '',
+    command:     typeof t.command === 'string'      ? t.command     : '',
+    icon:        typeof t.icon === 'string'         ? t.icon        : 'Terminal',
+    color:       typeof t.color === 'string'        ? t.color       : '#6c5ce7',
+    category:    typeof t.category === 'string'     ? t.category    : '',
+    runMode:     typeof t.runMode === 'string'      ? t.runMode     : '',
+  };
+}
+
 // ── In-memory session store ───────────────────────────────────────────────────
 const sessions = new Map(); // token → { userId, attuid, createdAt }
 const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 hours
@@ -149,7 +200,8 @@ app.post('/api/auth/register', (req, res) => {
 
   const { attuid, pin } = req.body || {};
   if (!attuid || !pin) return res.status(400).json({ error: 'ATTUID y PIN requeridos.' });
-  if (String(pin).length < 4) return res.status(400).json({ error: 'El PIN debe tener al menos 4 dígitos.' });
+  if (!/^\d+$/.test(String(pin))) return res.status(400).json({ error: 'El PIN debe contener solo dígitos.' });
+  if (String(pin).length < 6) return res.status(400).json({ error: 'El PIN debe tener al menos 6 dígitos.' });
 
   const users = readUsers();
   if (users.find(u => u.attuid.toUpperCase() === attuid.toUpperCase()))
@@ -168,27 +220,43 @@ app.post('/api/auth/register', (req, res) => {
   res.status(201).json({ id: newUser.id, attuid: newUser.attuid, settings: newUser.settings });
 });
 
+// ── POST /api/auth/logout ────────────────────────────────────────────────────
+app.post('/api/auth/logout', requireAuth, (req, res) => {
+  const token = req.headers['x-hub-token'];
+  sessions.delete(token);
+  auditLog(req.hubSession.attuid, 'LOGOUT');
+  res.json({ success: true });
+});
+
 // ── GET /api/users/:id ───────────────────────────────────────────────────────
-app.get('/api/users/:id', (req, res) => {
+app.get('/api/users/:id', requireAuth, (req, res) => {
+  // Users can only read their own profile
+  if (req.hubSession.userId !== req.params.id)
+    return res.status(403).json({ error: 'Acceso denegado.' });
   const user = readUsers().find(u => u.id === req.params.id);
   if (!user) return res.status(404).json({ error: 'Perfil no encontrado.' });
   res.json({ id: user.id, attuid: user.attuid, settings: user.settings });
 });
 
 // ── PUT /api/users/:id/settings ──────────────────────────────────────────────
-app.put('/api/users/:id/settings', (req, res) => {
+app.put('/api/users/:id/settings', requireAuth, (req, res) => {
+  // Users can only update their own settings
+  if (req.hubSession.userId !== req.params.id)
+    return res.status(403).json({ error: 'Acceso denegado.' });
   const { settings } = req.body || {};
-  if (!settings || typeof settings !== 'object') return res.status(400).json({ error: 'Settings inválidos.' });
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings))
+    return res.status(400).json({ error: 'Settings inválidos.' });
   const users = readUsers();
   const idx = users.findIndex(u => u.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Perfil no encontrado.' });
-  users[idx].settings = { ...users[idx].settings, ...settings };
+  // Whitelist-only merge — prevents prototype pollution
+  users[idx].settings = { ...users[idx].settings, ...sanitizeSettings(settings) };
   writeUsers(users);
   res.json({ success: true });
 });
 
 // ── GET /api/snippets ─────────────────────────────────────────────────────────
-app.get('/api/snippets', (req, res) => {
+app.get('/api/snippets', requireAuth, (req, res) => {
   try {
     res.json(JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')));
   } catch {
@@ -197,12 +265,18 @@ app.get('/api/snippets', (req, res) => {
 });
 
 // ── POST /api/snippets ────────────────────────────────────────────────────────
-app.post('/api/snippets', (req, res) => {
+app.post('/api/snippets', requireAuth, (req, res) => {
   const { snippets, tools } = req.body || {};
   if (!Array.isArray(snippets) || !Array.isArray(tools))
     return res.status(400).json({ error: 'Estructura de datos inválida.' });
+  if (snippets.length > 2000 || tools.length > 500)
+    return res.status(400).json({ error: 'Límite de datos excedido.' });
   try {
-    atomicWrite(DATA_FILE, JSON.stringify({ snippets, tools }, null, 2));
+    // Sanitize each item — strips prototype pollution and unknown fields
+    const cleanSnippets = snippets.map(sanitizeSnippet);
+    const cleanTools    = tools.map(sanitizeTool);
+    atomicWrite(DATA_FILE, JSON.stringify({ snippets: cleanSnippets, tools: cleanTools }, null, 2));
+    auditLog(req.hubSession.attuid, 'SAVE_DATA', `snippets=${cleanSnippets.length} tools=${cleanTools.length}`);
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Error al guardar los datos.' });
@@ -231,13 +305,23 @@ function isValidIdent(s) {
 // ── POST /api/elevated-terminal — protected ───────────────────────────────────
 // Commands are generated client-side (makeConectarScript / makeRunAsToolScript)
 // and use `runas` which creates its own visible CMD window with a password prompt.
-// No interactive-mode flag needed: Start-Process + runas handles it natively.
 app.post('/api/elevated-terminal', requireAuth, (req, res) => {
-  const { command } = req.body || {};
+  const { command, adminUser, adminDomain } = req.body || {};
   if (!command || typeof command !== 'string') {
     return res.status(400).json({ error: 'Se requiere "command" en el body.' });
   }
-  // Encode as UTF-16LE base64 → -EncodedCommand avoids shell escaping/injection
+  // Enforce maximum command length (prevent payload stuffing)
+  if (command.length > 8192) {
+    return res.status(400).json({ error: 'Comando demasiado largo.' });
+  }
+  // Validate admin identifiers if provided (BLOCKER-04 — isValidIdent now in use)
+  if (adminUser   && !isValidIdent(adminUser))   return res.status(400).json({ error: 'adminUser inválido.' });
+  if (adminDomain && !isValidIdent(adminDomain)) return res.status(400).json({ error: 'adminDomain inválido.' });
+
+  // Audit every execution — who, when, first 120 chars of command
+  auditLog(req.hubSession.attuid, 'EXEC_PS', command.slice(0, 120).replace(/\n/g, ' '));
+
+  // Encode as UTF-16LE base64 → -EncodedCommand avoids shell argument injection
   const encoded = Buffer.from(command, 'utf16le').toString('base64');
   exec(`powershell -NoProfile -EncodedCommand ${encoded}`, { timeout: 60000 }, (error, stdout, stderr) => {
     if (error) {
@@ -290,9 +374,10 @@ app.get('/api/sysinfo', async (req, res) => {
 });
 
 // ── GET /api/export/json — protected ─────────────────────────────────────────
-app.get('/api/export/json', (req, res) => {
+app.get('/api/export/json', requireAuth, (req, res) => {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+    auditLog(req.hubSession.attuid, 'EXPORT_JSON');
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', 'attachment; filename="codehub-backup.json"');
     res.send(raw);
@@ -300,7 +385,7 @@ app.get('/api/export/json', (req, res) => {
 });
 
 // ── GET /api/export/xlsx — protected ─────────────────────────────────────────
-app.get('/api/export/xlsx', (req, res) => {
+app.get('/api/export/xlsx', requireAuth, (req, res) => {
   try {
     const { snippets = [], tools = [] } = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
     const wb = XLSX.utils.book_new();
@@ -324,6 +409,7 @@ app.get('/api/export/xlsx', (req, res) => {
     }
 
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    auditLog(req.hubSession.attuid, 'EXPORT_XLSX');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename="codehub-backup.xlsx"');
     res.send(buf);

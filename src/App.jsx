@@ -1829,7 +1829,8 @@ function LoginScreen({ onLogin }) {
     const uid = regAttuid.trim().toUpperCase();
     const p   = regPin.trim();
     if (!uid || !p) { setRegError('Completá todos los campos.'); return; }
-    if (p.length < 4) { setRegError('El PIN debe tener al menos 4 dígitos.'); return; }
+    if (!/^\d+$/.test(p)) { setRegError('El PIN debe contener solo dígitos.'); return; }
+    if (p.length < 6) { setRegError('El PIN debe tener al menos 6 dígitos.'); return; }
     if (p !== regPin2.trim()) { setRegError('Los PINs no coinciden.'); return; }
     setRegLoading(true); setRegError('');
     try {
@@ -1879,16 +1880,16 @@ function LoginScreen({ onLogin }) {
               placeholder="JRODRIGUEZ" maxLength={20} autoFocus autoComplete="off" />
           </div>
           <div className="login-field">
-            <label>Elegí un PIN (4-6 dígitos)</label>
+            <label>Elegí un PIN (mín. 6 dígitos)</label>
             <input type="password" value={regPin} onChange={e => { setRegPin(e.target.value.replace(/\D/g, '')); setRegError(''); }}
               onKeyDown={e => e.key === 'Enter' && handleRegister()}
-              placeholder="••••" maxLength={6} inputMode="numeric" autoComplete="new-password" />
+              placeholder="••••••" maxLength={10} inputMode="numeric" autoComplete="new-password" />
           </div>
           <div className="login-field">
             <label>Confirmá el PIN</label>
             <input type="password" value={regPin2} onChange={e => { setRegPin2(e.target.value.replace(/\D/g, '')); setRegError(''); }}
               onKeyDown={e => e.key === 'Enter' && handleRegister()}
-              placeholder="••••" maxLength={6} inputMode="numeric" autoComplete="new-password" />
+              placeholder="••••••" maxLength={10} inputMode="numeric" autoComplete="new-password" />
           </div>
         </div>
         {regError && <div className="login-error">{regError}</div>}
@@ -2033,7 +2034,16 @@ export default function App() {
     setActiveProfile(profile);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = localStorage.getItem('hub_session');
+    if (token) {
+      try {
+        await fetch(`${API}/auth/logout`, {
+          method: 'POST',
+          headers: { 'x-hub-token': token }
+        });
+      } catch (_) { /* server unreachable — still clear local session */ }
+    }
     localStorage.removeItem('hub_session');
     setActiveProfile(null);
     setView(VIEWS.dashboard);
